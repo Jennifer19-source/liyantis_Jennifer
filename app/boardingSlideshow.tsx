@@ -3,13 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -60,6 +60,7 @@ export default function BoardingSlideshow() {
 
   return (
     <View style={styles.container}>
+      {/* CAROUSEL - TOP PART */}
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -67,6 +68,7 @@ export default function BoardingSlideshow() {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        style={styles.carouselContainer}
       >
         {slides.map((slide, index) => (
           <View key={index} style={[styles.slide, { width }]}>
@@ -79,55 +81,58 @@ export default function BoardingSlideshow() {
             {/* CURVED OVERLAY */}
             <View style={styles.curveContainer} />
 
-            {/* BOTTOM CONTENT */}
-            <LinearGradient
-              colors={["#0E0F1A", "#1A1B2D"]}
-              style={styles.bottomContainer}
-            >
+            {/* TITLE */}
+            <View style={styles.titleContainer}>
               <Text style={styles.title}>{slide.title}</Text>
-
-              {/* Dots */}
-              <View style={styles.dotsContainer}>
-                {[0, 1, 2].map((dotIndex) => (
-                  <View
-                    key={dotIndex}
-                    style={[
-                      styles.dot,
-                      { opacity: currentIndex === dotIndex ? 1 : 0.4 },
-                    ]}
-                  />
-                ))}
-              </View>
-
-              {/* EMAIL BUTTON */}
-              <TouchableOpacity
-                style={styles.emailButton}
-                onPress={() => router.push("/email")}
-              >
-                <Feather name="mail" size={20} color="#000" />
-                <Text style={styles.emailText}>Continue with Email</Text>
-              </TouchableOpacity>
-
-              {/* SOCIAL BUTTONS */}
-              <View style={styles.socialRow}>
-                <TouchableOpacity style={styles.socialButton}>
-                  <AntDesign name="google" size={20} color="#fff" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.socialButton}>
-                  <FontAwesome name="apple" size={22} color="#fff" />
-                </TouchableOpacity>
-              </View>
-
-              {/* TERMS TEXT */}
-              <Text style={styles.terms}>
-                By continuing you agree Liyantis's Terms of{"\n"}Services &
-                Privacy Policy
-              </Text>
-            </LinearGradient>
+            </View>
           </View>
         ))}
       </ScrollView>
+
+      {/* FIXED BOTTOM CONTENT */}
+      <LinearGradient
+        colors={["#0E0F1A", "#1A1B2D"]}
+        style={styles.bottomContainer}
+      >
+        {/* Dots */}
+        <View style={styles.dotsContainer}>
+          {[0, 1, 2].map((dotIndex) => (
+            <View
+              key={dotIndex}
+              style={[
+                styles.dot,
+                { opacity: currentIndex === dotIndex ? 1 : 0.4 },
+              ]}
+            />
+          ))}
+        </View>
+
+        {/* EMAIL BUTTON */}
+        <TouchableOpacity
+          style={styles.emailButton}
+          onPress={() => router.push("/email")}
+        >
+          <Feather name="mail" size={20} color="#000" />
+          <Text style={styles.emailText}>Continue with Email</Text>
+        </TouchableOpacity>
+
+        {/* SOCIAL BUTTONS */}
+        <View style={styles.socialRow}>
+          <TouchableOpacity style={styles.socialButton}>
+            <AntDesign name="google" size={20} color="#FF968E" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialButton}>
+            <FontAwesome name="apple" size={22} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* TERMS TEXT */}
+        <Text style={styles.terms}>
+          By continuing you agree Liyantis's Terms of{"\n"}Services &
+          Privacy Policy
+        </Text>
+      </LinearGradient>
     </View>
   );
 }
@@ -137,38 +142,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0E0F1A",
   },
-  slide: {
+  carouselContainer: {
     flex: 1,
+  },
+  slide: {
+    height: "100%",
   },
   topImage: {
     width: "100%",
-    height: "60%",
+    height: "58%",
     resizeMode: "cover",
   },
   curveContainer: {
-    position: "absolute",
-    top: "45%",
-    width: "120%",
-    height: 250,
-    backgroundColor: "#0E0F1A",
-    borderTopLeftRadius: 200,
-    transform: [{ rotate: "-15deg" }],
-    left: -40,
+    display: "none",
   },
-  bottomContainer: {
+  titleContainer: {
     position: "absolute",
     bottom: 0,
-    width: "100%",
-    paddingHorizontal: 30,
-    paddingBottom: 40,
-    paddingTop: 20,
+    left: 32,
   },
   title: {
-    color: "white",
+    color: "#fff",
     fontSize: 34,
     fontWeight: "600",
     lineHeight: 40,
     marginBottom: 20,
+  },
+  bottomContainer: {
+    width: "100%",
+    paddingHorizontal: 32,
+    paddingBottom: 40,
   },
   dotsContainer: {
     flexDirection: "row",
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 30,
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: 25,
   },
   emailText: {
     fontSize: 16,
@@ -200,7 +203,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 20,
-    marginBottom: 30,
+    marginBottom: 25,
   },
   socialButton: {
     width: 60,
@@ -215,7 +218,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#888",
     textAlign: "center",
-    marginTop: 10,
     lineHeight: 15,
   },
 });

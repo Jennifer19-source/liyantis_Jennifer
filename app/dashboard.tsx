@@ -98,10 +98,13 @@ export default function DashboardScreen() {
 
           {/* 70/30 Payment Plan Card */}
           <View style={styles.paymentCard}>
+            
             {/* Card Header */}
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>70/30</Text>
-              <Feather name="maximize-2" size={14} color="#aaa" />
+              <Pressable onPress={() => router.push("/timeline")}>
+                <Feather name="maximize-2" size={14} color="#aaa" />
+              </Pressable>
             </View>
 
             {/* Big Percentage Center */}

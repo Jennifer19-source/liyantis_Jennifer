@@ -1,14 +1,66 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+const ALL_PROPERTIES = [
+  { name: "The Weave", builder: "At JVC by Al Ghurair", isFav: true },
+  { name: "Ellington Properties", builder: "The Cove", isFav: true },
+  { name: "Dubai Islands", builder: "Emaar, Ellington Properties" },
+  { name: "Dubai Marina", builder: "Nakheel Properties" },
+  { name: "Palm Jumeirah", builder: "Emaar" },
+  { name: "Dubai Hills Estate", builder: "Meraas" },
+];
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState("recent"); // ⭐ MAIN TOGGLE
+  const [favStates, setFavStates] = useState(
+    ALL_PROPERTIES.map((p) => p.isFav || false)
+  );
 
-  // ❤️ heart states for each property
-  const [heart1, setHeart1] = useState(false);
-  const [heart2, setHeart2] = useState(false);
+  const toggleFav = (index: number) => {
+    const updated = [...favStates];
+    updated[index] = !updated[index];
+    setFavStates(updated);
+  };
+
+  const RECENT = ALL_PROPERTIES.slice(0, 2); // ⭐ first 2 items
+
+  const renderItem = ({ item, index }: any) => (
+    <TouchableOpacity 
+      style={styles.propertyCard}
+      onPress={() => {
+        if (item.name === "The Weave") {
+          router.push("/dashboard");
+        }
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={() => toggleFav(index)}>
+            <Ionicons
+              name={favStates[index] ? "heart" : "heart-outline"}
+              size={16}
+              color={favStates[index] ? "red" : "white"}
+            />
+          </TouchableOpacity>
+
+          <Text style={styles.propertyName}>{item.name}</Text>
+        </View>
+
+        <Text style={styles.propertyBuilder}>{item.builder}</Text>
+      </View>
+
+      <Ionicons name="arrow-forward" size={20} color="white" />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -19,66 +71,52 @@ export default function HomeScreen() {
           <Text style={styles.greetingLarge}>Good Morning !</Text>
         </View>
 
-        {/* Notification Icon */}
         <TouchableOpacity style={styles.notificationWrapper}>
           <Ionicons name="notifications-outline" size={26} color="#fff" />
           <View style={styles.notificationDot} />
         </TouchableOpacity>
       </View>
 
-      {/* Toggle Buttons */}
+      {/* ⭐ TOGGLE BUTTONS – NO NAVIGATION */}
       <View style={styles.toggleContainer}>
-        <TouchableOpacity style={styles.toggleActive}>
-          <Text style={styles.toggleActiveText}>Recent</Text>
+        <TouchableOpacity
+          style={selectedTab === "recent" ? styles.toggleActive : styles.toggleInactive}
+          onPress={() => setSelectedTab("recent")}
+        >
+          <Text
+            style={
+              selectedTab === "recent"
+                ? styles.toggleActiveText
+                : styles.toggleInactiveText
+            }
+          >
+            Recent
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.toggleInactive}
-          onPress={() => router.push("/home2")}
+          style={selectedTab === "all" ? styles.toggleActive : styles.toggleInactive}
+          onPress={() => setSelectedTab("all")}
         >
-          <Text style={styles.toggleInactiveText}>All</Text>
+          <Text
+            style={
+              selectedTab === "all"
+                ? styles.toggleActiveText
+                : styles.toggleInactiveText
+            }
+          >
+            All
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* -------- PROPERTY 1 -------- */}
-      <TouchableOpacity style={styles.propertyCard}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.row}>
-            {/* ❤️ CLICKABLE HEART (left aligned) */}
-            <TouchableOpacity onPress={() => setHeart1(!heart1)}>
-              <Ionicons
-                name={heart1 ? "heart" : "heart-outline"}
-                size={18}
-                color={heart1 ? "red" : "white"}
-              />
-            </TouchableOpacity>
-
-            <Text style={styles.propertyName}>The Weave</Text>
-          </View>
-          <Text style={styles.propertyBuilder}>At JVC by Al Ghurair</Text>
-        </View>
-        <Ionicons name="arrow-forward" size={20} color="white" />
-      </TouchableOpacity>
-
-      {/* -------- PROPERTY 2 -------- */}
-      <TouchableOpacity style={styles.propertyCard}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.row}>
-            {/* ❤️ CLICKABLE HEART (left aligned) */}
-            <TouchableOpacity onPress={() => setHeart2(!heart2)}>
-              <Ionicons
-                name={heart2 ? "heart" : "heart-outline"}
-                size={18}
-                color={heart2 ? "red" : "white"}
-              />
-            </TouchableOpacity>
-
-            <Text style={styles.propertyName}>Ellington Properties</Text>
-          </View>
-          <Text style={styles.propertyBuilder}>The Cove</Text>
-        </View>
-        <Ionicons name="arrow-forward" size={20} color="white" />
-      </TouchableOpacity>
+      {/* ⭐ LIST CHANGES BASED ON TOGGLE */}
+      <FlatList
+        data={selectedTab === "recent" ? RECENT : ALL_PROPERTIES}
+        keyExtractor={(item) => item.name}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      />
 
       {/* BOTTOM TAB BAR */}
       <View style={styles.tabBar}>
@@ -90,7 +128,6 @@ export default function HomeScreen() {
           <Feather name="file-text" size={23} color="#fff" />
         </TouchableOpacity>
 
-        {/* CENTER BUTTON */}
         <TouchableOpacity style={styles.centerButton}>
           <Text style={styles.plus}>+</Text>
         </TouchableOpacity>
@@ -115,28 +152,16 @@ const styles = StyleSheet.create({
     paddingTop: 70,
   },
 
-  /* HEADER */
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 25,
   },
-  greetingSmall: {
-    color: "#B9B9B9",
-    fontSize: 18,
-  },
-  greetingLarge: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "700",
-  },
+  greetingSmall: { color: "#B9B9B9", fontSize: 18 },
+  greetingLarge: { color: "#fff", fontSize: 28, fontWeight: "700" },
 
-  /* Notification */
-  notificationWrapper: {
-    position: "relative",
-    padding: 6,
-  },
+  notificationWrapper: { position: "relative", padding: 6 },
   notificationDot: {
     width: 11,
     height: 11,
@@ -147,14 +172,14 @@ const styles = StyleSheet.create({
     right: 2,
   },
 
-  /* Toggle Buttons */
   toggleContainer: {
     flexDirection: "row",
     backgroundColor: "#1B1D27",
     padding: 6,
     borderRadius: 12,
-    marginBottom: 30,
+    marginBottom: 20,
   },
+
   toggleActive: {
     flex: 1,
     backgroundColor: "#F1FE74",
@@ -162,21 +187,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 10,
   },
-  toggleActiveText: {
-    color: "#000",
-    fontWeight: "600",
-  },
   toggleInactive: {
     flex: 1,
     paddingVertical: 10,
     alignItems: "center",
     borderRadius: 10,
   },
-  toggleInactiveText: {
-    color: "#A3A3A3",
-  },
 
-  /* Property items */
+  toggleActiveText: { color: "#000", fontWeight: "600" },
+  toggleInactiveText: { color: "#A3A3A3" },
+
   propertyCard: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -184,22 +204,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#2F313C",
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  propertyName: {
-    color: "white",
-    fontSize: 16,
-  },
-  propertyBuilder: {
-    color: "#8A8A8A",
-    marginTop: 4,
-    fontSize: 13,
-  },
+  row: { flexDirection: "row", alignItems: "center", gap: 6 },
+  propertyName: { color: "white", fontSize: 16 },
+  propertyBuilder: { color: "#8A8A8A", marginTop: 4, fontSize: 13 },
 
-  /* Bottom Bar */
   tabBar: {
     position: "absolute",
     bottom: 0,
@@ -222,9 +230,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  plus: {
-    fontSize: 22,
-    color: "#000",
-    marginTop: -1,
-  },
+  plus: { fontSize: 22, color: "#000", marginTop: -1 },
 });

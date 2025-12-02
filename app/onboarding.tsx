@@ -18,26 +18,44 @@ export default function Onboarding() {
       <View style={[styles.dotSmall, { top: 150, left: 80 }]} />
 
       {/* Top small image */}
-      <View style={[styles.circleSmall, { top: 140, right: 40 }]}>
+      <View style={[styles.circleSmall, { top: 120, right: 40 }]}>
         <Image
           source={require("../assets/images/Img1.png")}
           style={styles.imgSmall}
         />
+        <Feather
+          name="check-circle"
+          size={20}
+          color="#C8FF4A"
+          style={styles.check}
+        />
       </View>
 
       {/* Middle image */}
-      <View style={[styles.circleMedium, { top: 260, left: 40 }]}>
+      <View style={[styles.circleMedium, { top: 200, left: 40 }]}>
         <Image
           source={require("../assets/images/Img2.png")}
           style={styles.imgMedium}
         />
+        <Feather
+          name="check-circle"
+          size={24}
+          color="#C8FF4A"
+          style={styles.check}
+        />
       </View>
 
       {/* Big circle image */}
-      <View style={[styles.circleBig, { top: 400, alignSelf: "center" }]}>
+      <View style={[styles.circleBig, { top: 260, alignSelf: "center" }]}>
         <Image
           source={require("../assets/images/Img3.png")}
           style={styles.imgBig}
+        />
+        <Feather
+          name="check-circle"
+          size={28}
+          color="#C8FF4A"
+          style={styles.check}
         />
       </View>
 
@@ -48,7 +66,7 @@ export default function Onboarding() {
       {/* Get Started Button */}
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push("/boardingSlideshow")}
+        onPress={() => router.push("/login")} // navigate to login screen
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
@@ -71,14 +89,14 @@ const styles = StyleSheet.create({
   dot: {
     width: 14,
     height: 14,
-    backgroundColor: "#EEFB73",
+    backgroundColor: "#C8FF4A",
     borderRadius: 7,
     position: "absolute",
   },
   dotSmall: {
     width: 10,
     height: 10,
-    backgroundColor: "#EEFB73",
+    backgroundColor: "#C8FF4A",
     borderRadius: 5,
     position: "absolute",
   },
@@ -129,7 +147,7 @@ const styles = StyleSheet.create({
   },
 
   subTitle: {
-    color: "#EEFB73",
+    color: "#C8FF4A",
     marginTop: 420,
     fontSize: 12,
     fontWeight: "700",
@@ -145,13 +163,13 @@ const styles = StyleSheet.create({
 
   button: {
     marginTop: 40,
-    backgroundColor: "#EEFB73",
+    backgroundColor: "#C8FF4A",
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: 30,
     width: 140,
     alignItems: "center",
-    shadowColor: "#EEFB73",
+    shadowColor: "#C8FF4A",
     shadowOpacity: 0.4,
     shadowRadius: 10,
   },
@@ -167,7 +185,7 @@ const styles = StyleSheet.create({
     bottom: 120,
     width: 90,
     height: 90,
-    backgroundColor: "#EEFB73",
+    backgroundColor: "#C8FF4A",
     borderTopLeftRadius: 60,
     borderBottomLeftRadius: 60,
     justifyContent: "center",
