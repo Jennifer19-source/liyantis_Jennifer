@@ -150,7 +150,7 @@ export default function TimelineScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#16181D", // Darker background
+    backgroundColor: "#181A20", // Darker background
     paddingHorizontal: 20,
     paddingTop: 10,
   },
@@ -169,8 +169,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8
   },
-  pillText: { color: "#16181D", fontWeight: "600", fontSize: 13 },
-  checkboxSquare: { width: 12, height: 12, borderWidth: 1.5, borderColor: '#16181D', borderRadius: 2 },
+  pillText: { color: "#181A20", fontWeight: "600", fontSize: 13 },
+  checkboxSquare: { width: 12, height: 12, borderWidth: 1.5, borderColor: '#181A20', borderRadius: 2 },
 
   // Header
   tableHeader: { flexDirection: "row", alignItems: "center", marginBottom: 10, marginTop: 10 },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   
   timelineCol: { width: 30, alignItems: "center", justifyContent:'center' },
   svgLineWrapper: { position: 'absolute', top: 20, zIndex: -1 },
-  iconWrapper: { width: 20, height: 20, justifyContent:'center', alignItems:'center', backgroundColor:'#16181D' }, // Bg covers the line behind icon
+  iconWrapper: { width: 20, height: 20, justifyContent:'center', alignItems:'center', backgroundColor:'#181A20' }, // Bg covers the line behind icon
   iconContainer: { width: 20, alignItems:'center'},
 
   stepNum: { color: "#666", fontSize: 13, width: 24, marginLeft: 4 },

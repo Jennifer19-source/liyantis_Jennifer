@@ -16,9 +16,9 @@ import {
 
 // --- Constants & Theme ---
 const COLORS = {
-  background: '#121214',
+  background: '#181A20',
   cardBg: '#1C1C1E',
-  primary: '#E3FF50', // The neon lime/yellow
+  primary: '#EEFB73', // Updated yellow color
   textWhite: '#FFFFFF',
   textGrey: '#A0A0A0',
   border: '#2C2C2E',
@@ -141,14 +141,14 @@ export default function ProjectionsScreen() {
             </View>
           </View>
 
-        </ScrollView>
+          {/* Next Button - Now part of scroll content */}
+          <View style={styles.nextButtonContainer}>
+            <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/form4')}>
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* --- Footer Button --- */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/form4')}>
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-        </View>
+        </ScrollView>
 
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+    paddingBottom: 40, // Normal padding since button is now in scroll content
   },
   fieldGroup: {
     marginBottom: 20,
@@ -206,10 +207,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputContainer: {
-    backgroundColor: COLORS.cardBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
+    borderRadius: 10,
     height: 50,
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -217,6 +218,8 @@ const styles = StyleSheet.create({
   input: {
     color: COLORS.textWhite,
     fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
   },
   divider: {
     height: 1,
@@ -242,10 +245,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   strategyBox: {
-    backgroundColor: COLORS.cardBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
+    backgroundColor: 'transparent',
+    borderWidth: 0.5,
+    borderColor: '#FFFFFF',
+    borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
@@ -260,15 +263,14 @@ const styles = StyleSheet.create({
   strategyInput: {
     color: COLORS.textWhite,
     fontSize: 28,
+    fontFamily: 'Inter-Medium',
     fontWeight: '500',
     textAlign: 'center',
     width: '100%',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
+  nextButtonContainer: {
+    marginTop: 30, // 30px spacing after last content
+    marginBottom: 20, // Bottom margin for scroll content
   },
   nextButton: {
     backgroundColor: COLORS.primary,

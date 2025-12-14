@@ -1,145 +1,187 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    Dimensions,
-    PanResponder,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 // --- Constants & Theme ---
 const COLORS = {
-  background: '#121214',
+  background: '#181A20',
   cardBg: '#1C1C1E',
-  primary: '#E3FF50', // The neon lime/yellow
+  primary: '#EEFB73', // Updated yellow color
   textWhite: '#FFFFFF',
   textGrey: '#A0A0A0',
   sliderTrack: '#4A5568', // Dark grey-blue for the line
   dotInactive: '#B0C4DE', // Light blue-grey for dots
-  activeDotBorder: '#E3FF50',
+  activeDotBorder: '#EEFB73', // Updated yellow color
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+// --- Types ---
+type Category = {
+  id: string;
+  label: string;
+  initial: number;
+};
 
-// --- Custom Slider Component ---
-const CustomRatingSlider = ({ 
-  label, 
-  value, 
-  onValueChange 
-}: { 
-  label: string; 
-  value: number; 
-  onValueChange: (val: number) => void 
-}) => {
-  const [sliderWidth, setSliderWidth] = useState(0);
+// --- Data ---
+const categories: Category[] = [
+  { id: 'capital', label: 'Capital appreciation', initial: 3 },
+  { id: 'payment', label: 'Payment plan', initial: 2 },
+  { id: 'service', label: 'Service charges', initial: 4 },
+  { id: 'proximity', label: 'Proximity', initial: 3 },
+  { id: 'connectivity', label: 'Connectivity', initial: 3 },
+  { id: 'government', label: 'Government infrastructure', initial: 3 },
+  { id: 'record', label: 'Record', initial: 3 },
+  { id: 'stability', label: 'Stability', initial: 3 },
+  { id: 'reputation', label: 'Reputation', initial: 3 },
+  { id: 'quality', label: 'Quality', initial: 3 },
+  { id: 'amenities', label: 'Amenities', initial: 3 },
+  { id: 'rental', label: 'Rental demand', initial: 3 },
+  { id: 'resale', label: 'Resale', initial: 3 },
+];
 
-  const updateValueFromPosition = (xPos: number) => {
-    if (sliderWidth === 0) return;
-    const step = sliderWidth / 4; // 5 positions = 4 gaps
-    const newIndex = Math.round(xPos / step);
-    const clampedIndex = Math.max(0, Math.min(newIndex, 4));
-    const newValue = clampedIndex + 1; // Convert 0-4 to 1-5
-    onValueChange(newValue);
-  };
+// --- Components ---
+/**
+ * Animated Ring Component
+ * Creates the pulsing effect around the selected dot.
+ */
+const SelectionRing = () => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderGrant: (evt) => {
-        updateValueFromPosition(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt) => {
-        updateValueFromPosition(evt.nativeEvent.locationX);
-      },
-    })
-  ).current;
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.2,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(opacityAnim, {
+            toValue: 0.6,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]),
+      ])
+    );
 
-  const getActiveDotPosition = () => {
-    if (sliderWidth === 0) return 0;
-    return ((value - 1) / 4) * sliderWidth;
-  };
+    pulse.start();
+    return () => pulse.stop();
+  }, [scaleAnim, opacityAnim]);
 
   return (
-    <View style={styles.sliderRow}>
-      {/* Header: Label and Number */}
-      <View style={styles.sliderHeader}>
-        <Text style={styles.sliderLabel}>{label}</Text>
-        <Text style={styles.sliderValue}>{value}</Text>
-      </View>
+    <Animated.View
+      style={[
+        styles.ring,
+        {
+          transform: [{ scale: scaleAnim }],
+          opacity: opacityAnim,
+        },
+      ]}
+    />
+  );
+};
 
-      {/* The Visual Slider */}
-      <View 
-        style={styles.sliderContainer}
-        onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
-        {...panResponder.panHandlers}
-      >
-        {/* The horizontal line track */}
-        <View style={styles.trackLine} />
-        
-        {/* The 5 Dots */}
-        <View style={styles.dotsContainer}>
-          {[1, 2, 3, 4, 5].map((item) => {
-            const isActive = item === value;
-            return (
-              <TouchableOpacity
-                key={item}
-                activeOpacity={0.7}
-                onPress={() => onValueChange(item)}
-                style={styles.dotTouchArea}
-              >
-                <View style={[
-                  styles.dotBase,
-                  isActive ? styles.dotActive : styles.dotInactive
-                ]}>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+/**
+ * Custom Slider Component
+ * Renders a track with 5 tappable dots.
+ */
+interface CustomSliderProps {
+  value: number;
+  onChange: (val: number) => void;
+}
 
-        {/* Draggable Active Indicator */}
-        {sliderWidth > 0 && (
-          <View style={[styles.draggableIndicator, { left: getActiveDotPosition() }]}>
-            <View style={styles.draggableCircle} />
-          </View>
-        )}
+const CustomSlider = ({ value, onChange }: CustomSliderProps) => {
+  return (
+    <View style={styles.sliderContainer}>
+      {/* Track Line */}
+      <View style={styles.track} />
+      
+      {/* Dots Container */}
+      <View style={styles.dotsRow}>
+        {[1, 2, 3, 4, 5].map((step) => {
+          const isSelected = value === step;
+          return (
+            <TouchableOpacity
+              key={step}
+              activeOpacity={0.8}
+              onPress={() => onChange(step)}
+              style={styles.touchTarget}
+            >
+              {/* Selection Ring (Absolute positioned behind dot) */}
+              {isSelected && <SelectionRing />}
+              
+              {/* The Dot */}
+              <View
+                style={[
+                  styles.dot,
+                  isSelected ? styles.dotSelected : styles.dotInactive,
+                ]}
+              />
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
 };
 
+/**
+ * Row Component
+ * Displays the Label, Current Score, and the Slider.
+ */
+interface ScoreRowProps {
+  label: string;
+  value: number;
+  onChange: (val: number) => void;
+}
+
+const ScoreRow = ({ label, value, onChange }: ScoreRowProps) => {
+  return (
+    <View style={styles.rowContainer}>
+      <View style={styles.textRow}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.scoreValue}>{value}</Text>
+      </View>
+      <CustomSlider value={value} onChange={onChange} />
+    </View>
+  );
+};
+
+// --- Main App Component ---
 export default function RatingCardScreen() {
   const router = useRouter();
 
-  // --- State for all categories ---
-  // Using a simple object map for cleaner updates
-  const [scores, setScores] = useState({
-    capitalAppreciation: 3,
-    paymentPlan: 2,
-    serviceCharges: 4,
-    proximity: 3,
-    connectivity: 3,
-    govInfra: 3,
-    record: 3,
-    stability: 3,
-    reputation: 3,
-    quality: 3,
-    amenities: 3,
-    rentalDemand: 3,
-    resale: 3,
-  });
+  const [scores, setScores] = useState<Record<string, number>>(() =>
+    categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.initial }), 
+    {} as Record<string, number>)
+  );
 
-  const updateScore = (key: keyof typeof scores, newValue: number) => {
-    setScores(prev => ({ ...prev, [key]: newValue }));
+  const handleScoreChange = (id: string, newValue: number) => {
+    setScores((prev) => ({ ...prev, [id]: newValue }));
   };
 
   return (
@@ -166,7 +208,10 @@ export default function RatingCardScreen() {
         <View style={{ width: 24 }} /> {/* Spacer for alignment */}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* Sub-header */}
         <View style={styles.subHeader}>
@@ -174,90 +219,31 @@ export default function RatingCardScreen() {
           <Text style={styles.optionalText}>Optional</Text>
         </View>
         
-        <Text style={styles.description}>
-          Add installments to complete the 100% payment for the project.
-        </Text>
-
-        {/* --- List of Sliders --- */}
-        <View style={styles.slidersList}>
-          <CustomRatingSlider 
-            label="Capital appreciation" 
-            value={scores.capitalAppreciation} 
-            onValueChange={(v) => updateScore('capitalAppreciation', v)} 
-          />
-          <CustomRatingSlider 
-            label="Payment plan" 
-            value={scores.paymentPlan} 
-            onValueChange={(v) => updateScore('paymentPlan', v)} 
-          />
-          <CustomRatingSlider 
-            label="Service charges" 
-            value={scores.serviceCharges} 
-            onValueChange={(v) => updateScore('serviceCharges', v)} 
-          />
-          <CustomRatingSlider 
-            label="Proximity" 
-            value={scores.proximity} 
-            onValueChange={(v) => updateScore('proximity', v)} 
-          />
-          <CustomRatingSlider 
-            label="Connectivity" 
-            value={scores.connectivity} 
-            onValueChange={(v) => updateScore('connectivity', v)} 
-          />
-          <CustomRatingSlider 
-            label="Government infrastructure" 
-            value={scores.govInfra} 
-            onValueChange={(v) => updateScore('govInfra', v)} 
-          />
-          <CustomRatingSlider 
-            label="Record" 
-            value={scores.record} 
-            onValueChange={(v) => updateScore('record', v)} 
-          />
-          <CustomRatingSlider 
-            label="Stability" 
-            value={scores.stability} 
-            onValueChange={(v) => updateScore('stability', v)} 
-          />
-          <CustomRatingSlider 
-            label="Reputation" 
-            value={scores.reputation} 
-            onValueChange={(v) => updateScore('reputation', v)} 
-          />
-          <CustomRatingSlider 
-            label="Quality" 
-            value={scores.quality} 
-            onValueChange={(v) => updateScore('quality', v)} 
-          />
-          <CustomRatingSlider 
-            label="Amenities" 
-            value={scores.amenities} 
-            onValueChange={(v) => updateScore('amenities', v)} 
-          />
-          <CustomRatingSlider 
-            label="Rental demand" 
-            value={scores.rentalDemand} 
-            onValueChange={(v) => updateScore('rentalDemand', v)} 
-          />
-          <CustomRatingSlider 
-            label="Resale" 
-            value={scores.resale} 
-            onValueChange={(v) => updateScore('resale', v)} 
-          />
+        <View style={styles.introContainer}>
+          <Text style={styles.introText}>
+            Add installments to complete the 100% payment for the project.
+          </Text>
         </View>
 
-        {/* Extra padding at bottom so button doesn't cover last item */}
-        <View style={{ height: 100 }} />
+        <View style={styles.listContainer}>
+          {categories.map((category) => (
+            <ScoreRow
+              key={category.id}
+              label={category.label}
+              value={scores[category.id]}
+              onChange={(val) => handleScoreChange(category.id, val)}
+            />
+          ))}
+        </View>
+
+        {/* Skip Button - Now part of scroll content */}
+        <View style={styles.nextButtonContainer}>
+          <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/home')}>
+            <Text style={styles.nextButtonText}>Skip</Text>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
-
-      {/* --- Footer Button --- */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.skipButton} onPress={() => router.push('/home')}>
-          <Text style={styles.skipButtonText}>Skip</Text>
-        </TouchableOpacity>
-      </View>
 
     </SafeAreaView>
   );
@@ -296,7 +282,11 @@ const styles = StyleSheet.create({
   progressActive: { backgroundColor: COLORS.primary },
 
   // Content Styles
-  scrollContent: { padding: 20 },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingBottom: 40, // Normal padding since button is now in scroll content
+  },
   subHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -312,102 +302,115 @@ const styles = StyleSheet.create({
     color: '#444',
     fontSize: 12,
   },
-  description: {
-    color: '#666',
+  introContainer: {
+    marginBottom: 32,
+  },
+  introText: {
+    color: COLORS.textGrey,
     fontSize: 12,
-    marginBottom: 25,
     lineHeight: 18,
   },
-  slidersList: {
-    gap: 20, // Vertical spacing between sliders
+  listContainer: {
+    gap: 24, // Note: 'gap' works in newer React Native versions. For older, use marginBottom in children.
   },
 
-  // Slider Component Styles
-  sliderRow: {
-    marginBottom: 5,
+  // Row Styles
+  rowContainer: {
+    marginBottom: 24, // Fallback spacing
   },
-  sliderHeader: {
+  textRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-end',
     marginBottom: 10,
   },
-  sliderLabel: {
-    color: COLORS.textGrey,
+  label: {
+    color: '#cbd5e1', // slate-300
     fontSize: 14,
-  },
-  sliderValue: {
-    color: COLORS.textWhite,
-    fontSize: 24,
     fontWeight: '500',
+    letterSpacing: 0.5,
   },
+  scoreValue: {
+    color: COLORS.textWhite,
+    fontSize: 30,
+    fontWeight: '300',
+    lineHeight: 34,
+  },
+
+  // Slider Styles
   sliderContainer: {
-    height: 30,
+    height: 40,
     justifyContent: 'center',
     position: 'relative',
   },
-  trackLine: {
+  track: {
     position: 'absolute',
     left: 0,
     right: 0,
     height: 2,
     backgroundColor: COLORS.sliderTrack,
-    top: 14, // Roughly vertically centered
+    borderRadius: 2,
   },
-  dotsContainer: {
+  dotsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  dotTouchArea: {
-    padding: 5, // Hit slop for easier tapping
+  touchTarget: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Ensure the touch target is on top of the track
+    zIndex: 10,
   },
-  dotBase: {
+  dot: {
     width: 12,
     height: 12,
     borderRadius: 6,
   },
   dotInactive: {
-    backgroundColor: COLORS.dotInactive,
+    backgroundColor: '#cffafe', // cyan-100
   },
-  dotActive: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.activeDotBorder,
-    marginTop: -4, // Visual lift to keep centered on line
+  dotSelected: {
+    backgroundColor: '#a5f3fc', // cyan-200
+    // In React Native, shadows are platform specific
+    ...Platform.select({
+      ios: {
+        shadowColor: '#a5f3fc',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 5,
+        shadowColor: '#a5f3fc',
+      },
+    }),
   },
-  draggableIndicator: {
+  ring: {
     position: 'absolute',
-    top: 5,
-    marginLeft: -10,
-    zIndex: 10,
-  },
-  draggableCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
-    borderWidth: 3,
-    borderColor: '#000',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    borderColor: '#fef08a', // yellow-200
+    zIndex: -1,
   },
 
-  // Footer Styles
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
+  // Button Styles
+  nextButtonContainer: {
+    marginTop: 30, // 30px spacing after last content
+    marginBottom: 20, // Bottom margin for scroll content
   },
-  skipButton: {
+  nextButton: {
     backgroundColor: COLORS.primary,
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  skipButtonText: {
+  nextButtonText: {
     color: '#000000',
     fontSize: 18,
     fontWeight: '700',

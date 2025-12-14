@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -8,12 +8,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from 'react-native';
 
 const COLORS = {
-  background: '#121214', // Slightly softer dark background
+  background: '#181A20', // Slightly softer dark background
   primary: '#DFFF4F',    // The specific Lime/Yellow from the screenshot
   textWhite: '#FFFFFF',
   textGrey: '#B3B3B3',

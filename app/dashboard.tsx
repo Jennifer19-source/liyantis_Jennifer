@@ -1,742 +1,868 @@
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"; 
-import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import { Ionicons } from '@expo/vector-icons';
+import React, { useRef, useState } from 'react';
 import {
   Dimensions,
-  FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   PanResponder,
-  Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
-} from "react-native";
+} from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 
-// --- Constants ---
+// --- Configuration Constants ---
+const TOTAL_PRICE = 1225000;
+const START_DATE = new Date(2026, 0, 26); // Jan 26, 2026
+const TOTAL_MONTHS = 12;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_PADDING = 16;
-const CONTAINER_WIDTH = SCREEN_WIDTH - (CARD_PADDING * 2); 
 
-const COLORS = {
-  moderateBg: '#F2FF5B', 
-  conservativeBg: '#FCFCE5', 
-  optimisticBg: '#A8C600', 
-  highlight: '#DFFF4F', 
-  inactiveDot: '#3A3A3C',
-  textGrey: '#8E8E93',
-  textWhite: '#FFFFFF',
-  textDark: '#1A1A1A',
+// --- Helpers ---
+const formatAED = (value: number) => {
+  // Simple formatter for AED
+  return value.toLocaleString();
 };
 
-// --- Data ---
-const TIMELINE_DATA = [
-  { date: 'Jan 26', percent: '10', value: '122,500' },
-  { date: 'Feb 26', percent: '20', value: '245,000' },
-  { date: 'Mar 26', percent: '30', value: '367,500' },
-  { date: 'Apr 26', percent: '40', value: '490,000' },
-  { date: 'May 26', percent: '50', value: '612,500' },
-  { date: 'Jun 26', percent: '60', value: '735,000' },
-  { date: 'Jul 26', percent: '70', value: '857,500' },
-  { date: 'Aug 26', percent: '80', value: '980,000' },
-  { date: 'Sep 26', percent: '90', value: '1,102,500' },
-  { date: 'Oct 26', percent: '100', value: '1,225,000' },
-  { date: 'Nov 26', percent: '100+', value: 'Final' },
-  { date: 'Jan 27', percent: 'Handover', value: 'Done' },
-];
-
-type StrategyData = {
-  id: string;
-  type: 'STP' | 'MTP' | 'LTP';
-  title: string;
-  accessoryType: 'dropdown' | 'counter';
-  moderate: { percent: string; val: string };
-  conservative: { percent: string; val: string };
-  optimistic: { percent: string; val: string };
-  description: string;
-  highlightText: string;
+const addMonths = (date: Date, months: number) => {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + months);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-const STRATEGIES: StrategyData[] = [
-  {
-    id: '1',
-    type: 'STP',
-    title: 'STP — Flipping',
-    accessoryType: 'dropdown',
-    moderate: { percent: '25.46%', val: 'AED 137.24k' },
-    conservative: { percent: '7.87%', val: 'AED 42.42k' },
-    optimistic: { percent: '34.46%', val: 'AED 185.75k' },
-    description: '** The project will generate an estimated ROE of ~25.46% based on ',
-    highlightText: 'AED539k capital invested by March 2026.',
-  },
-  {
-    id: '2',
-    type: 'MTP',
-    title: 'MTP — Holding',
-    accessoryType: 'dropdown',
-    moderate: { percent: '25.46%', val: 'AED 137.24k' },
-    conservative: { percent: '7.87%', val: 'AED 42.42k' },
-    optimistic: { percent: '34.46%', val: 'AED 185.75k' },
-    description: '** The project will generate an estimated ROE of ~25.46% based on ',
-    highlightText: 'AED539k capital invested by March 2026.',
-  },
-  {
-    id: '3',
-    type: 'LTP',
-    title: 'LTP — Compounding',
-    accessoryType: 'counter',
-    moderate: { percent: '117.72%', val: 'AED 137.24k' },
-    conservative: { percent: '49.18%', val: 'AED 42.42k' },
-    optimistic: { percent: '160.32%', val: 'AED 185.75k' },
-    description: '** The project will generate an estimated ROE of ~25.46% based on ',
-    highlightText: 'AED1.274mn (AED1.225 + 4% DLD) capital invested by Jan 2027.',
-  },
-];
-
-// --- UPDATED TOOLTIP CONTENT ---
-const TOOLTIP_CONTENT = {
-  offPlan: { 
-    title: "Off-plan", 
-    text: "This project is still under construction." 
-  },
-  rating: { 
-    title: "Project rating", 
-    text: "Overall rating of project based on the rated parameters." 
-  },
-  rooms: { 
-    title: "Unit Type", 
-    text: "1 Bedroom configuration with standard layout." 
-  },
-  area: { 
-    title: "Apartment", 
-    text: "This is an apartment (project category) with an area of 776 ft²." 
-  },
-  sc: { 
-    title: "Service Charges/ft²", 
-    text: "This section right here contains service charges per square feet." 
-  },
-  pr: { 
-    title: "Price/ft²", 
-    text: "This section right here contains price per square feet." 
-  },
-  dld: {
-    title: "DLD",
-    text: "This section contains Dubai land department transfer fee."
-  }
-};
-
-export default function DashboardScreen() {
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-
-  // --- Carousel State ---
-  const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
-
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = event.nativeEvent.contentOffset.x / slideSize;
-    const roundIndex = Math.round(index);
-    if (roundIndex !== activeIndex) {
-      setActiveIndex(roundIndex);
-    }
-  };
-
-  // --- Payment Timeline Logic ---
-  const [timelineIndex, setTimelineIndex] = useState(0);
+export default function App() {
+  // --- State ---
+  const [sliderValue, setSliderValue] = useState(2); // Start index (March)
   const [sliderWidth, setSliderWidth] = useState(0);
-  const dragStartX = useRef(0);
 
+  // --- Derived Values ---
+  const currentPercentage = Math.round(5 + (sliderValue / TOTAL_MONTHS) * 25);
+  const currentAmount = Math.round(TOTAL_PRICE * (currentPercentage / 100));
+  const currentDate = addMonths(START_DATE, sliderValue);
+
+  // Status Logic - More responsive status changes
+  let statusText = "";
+  let statusColor = "transparent";
+  if (sliderValue <= 1) {
+    statusText = "Start";
+    statusColor = "#ffffff";
+  } else if (sliderValue >= 5 && sliderValue <= 7) {
+    statusText = "Flip Ready";
+    statusColor = "#eef878";
+  } else if (sliderValue >= TOTAL_MONTHS - 1) {
+    statusText = "Handover";
+    statusColor = "#f87171"; // Red-400 equivalent
+  }
+
+  // --- Pan Responder for Slider ---
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      
-      onPanResponderGrant: () => {
-        if (sliderWidth > 0) {
-           const step = sliderWidth / (TIMELINE_DATA.length - 1);
-           dragStartX.current = timelineIndex * step;
-        }
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
+      onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => true,
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onPanResponderGrant: (evt, gestureState) => {
+        // Handle initial touch
+        handleTouch(evt.nativeEvent.locationX);
       },
-      
       onPanResponderMove: (evt, gestureState) => {
-        if (sliderWidth === 0) return;
-        const newX = dragStartX.current + gestureState.dx;
-        const step = sliderWidth / (TIMELINE_DATA.length - 1);
-        const rawIndex = Math.round(newX / step);
-        const clampedIndex = Math.max(0, Math.min(rawIndex, TIMELINE_DATA.length - 1));
-        setTimelineIndex(clampedIndex);
+        // Handle drag movement
+        handleTouch(evt.nativeEvent.locationX);
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        // Handle release
+        handleTouch(evt.nativeEvent.locationX);
+      },
+      onPanResponderTerminate: (evt, gestureState) => {
+        // Handle termination
       },
     })
   ).current;
 
-  const currentTimelineItem = TIMELINE_DATA[timelineIndex];
-
-  const getTrianglePosition = () => {
-    if (TIMELINE_DATA.length <= 1 || sliderWidth === 0) return 0;
-    const position = (timelineIndex / (TIMELINE_DATA.length - 1)) * sliderWidth;
-    return position;
-  };
-
-  // --- Tooltip Component ---
-  const Tooltip = ({ id, width = 200, leftOffset = 0 }: { id: keyof typeof TOOLTIP_CONTENT, width?: number, leftOffset?: number }) => {
-    if (activeTooltip !== id) return null;
-    const content = TOOLTIP_CONTENT[id];
-    
-    return (
-      <View style={[styles.tooltipContainer, { width, marginLeft: leftOffset }]}>
-         {/* 1. Content Box */}
-         <View style={styles.tooltipBox}>
-            <View style={styles.tooltipHeader}>
-               <Text style={styles.tooltipTitle}>{content.title}</Text>
-               <Pressable onPress={() => setActiveTooltip(null)} hitSlop={10}>
-                  <Feather name="x" size={18} color="#aaa" />
-               </Pressable>
-            </View>
-            <Text style={styles.tooltipText}>
-              {content.text}
-            </Text>
-         </View>
-         {/* 2. Triangle Pointer */}
-         <View style={styles.tooltipPointer} />
-      </View>
-    );
-  };
-
-  // --- Render Item for Carousel ---
-  const renderItem = ({ item }: { item: StrategyData }) => {
-    return (
-      <View style={styles.slideContainer}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.smallLabel}>Exit Strategies</Text>
-            <Text style={styles.mainTitle}>{item.title}</Text>
-          </View>
-          <View style={styles.topRightContainer}>
-            {item.accessoryType === 'dropdown' ? (
-              <>
-                <View style={styles.percentBadge}>
-                  <Text style={styles.percentSymbol}>%</Text>
-                  <Ionicons name="chevron-down" size={12} color="#000" />
-                </View>
-                <TouchableOpacity style={styles.expandIcon}>
-                  <MaterialCommunityIcons name="arrow-expand-all" size={18} color="#AAA" />
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={styles.counterContainer}>
-                <TouchableOpacity style={styles.counterBtn}>
-                  <Text style={styles.counterBtnText}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.counterValue}>5</Text>
-                <TouchableOpacity style={styles.counterBtn}>
-                  <Text style={styles.counterBtnText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.cardsRow}>
-          <View style={[styles.strategyCardItem, { backgroundColor: COLORS.moderateBg, borderColor: '#FFF', borderWidth: 1 }]}>
-            <Text style={styles.cardLabel}>Moderate</Text>
-            <Text style={styles.cardPercent}>{item.moderate.percent}</Text>
-            <Text style={styles.cardValue}>{item.moderate.val}</Text>
-          </View>
-          <View style={[styles.strategyCardItem, { backgroundColor: COLORS.conservativeBg }]}>
-            <Text style={styles.cardLabel}>Conservative</Text>
-            <Text style={styles.cardPercent}>{item.conservative.percent}</Text>
-            <Text style={styles.cardValue}>{item.conservative.val}</Text>
-          </View>
-          <View style={[styles.strategyCardItem, { backgroundColor: COLORS.optimisticBg }]}>
-            <Text style={styles.cardLabel}>Optimistic</Text>
-            <Text style={styles.cardPercent}>{item.optimistic.percent}</Text>
-            <Text style={styles.cardValue}>{item.optimistic.val}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.footerText}>
-          {item.description}
-          <Text style={styles.footerTextBold}>{item.highlightText}</Text>
-        </Text>
-      </View>
-    );
+  const handleTouch = (x: number) => {
+    if (sliderWidth === 0) return;
+    // Constrain X between 0 and width
+    const constrainedX = Math.max(0, Math.min(x, sliderWidth));
+    const percentage = constrainedX / sliderWidth;
+    const newValue = Math.round(percentage * TOTAL_MONTHS);
+    setSliderValue(newValue);
   };
 
   return (
-    <View style={styles.mainContainer}>
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
-            <Feather name="chevron-left" size={28} color="#fff" />
-          </Pressable>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>The Weave, JVC</Text>
-            <Text style={styles.headerSubtitle}>by Al Ghurair</Text>
-          </View>
-          <Pressable onPress={() => setMenuVisible(!menuVisible)}>
-            <Feather name="more-horizontal" size={24} color="#fff" />
-          </Pressable>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#121214" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity>
+          <Ionicons name="chevron-back" color="#D1D5DB" size={28} />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>The Weave, JVC</Text>
+          <Text style={styles.headerSubtitle}>by Al Ghurair</Text>
         </View>
-
-        {/* Side Menu */}
-        {menuVisible && (
-          <>
-            <Pressable style={styles.menuOverlay} onPress={() => setMenuVisible(false)} />
-            <View style={styles.sideMenu}>
-              <TouchableOpacity style={styles.menuItem}>
-                <Ionicons name="heart-outline" size={24} color="#fff" />
-                <Text style={styles.menuText}>Add to liked</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem}>
-                <Ionicons name="star-outline" size={24} color="#fff" />
-                <Text style={styles.menuText}>Edit rating</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem}>
-                <Feather name="edit-2" size={22} color="#fff" />
-                <Text style={styles.menuText}>Edit details</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem}>
-                <Feather name="download" size={22} color="#fff" />
-                <Text style={styles.menuText}>Get pdf</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          
-          {/* Top Grid Area - INTERACTIVE */}
-          <View style={styles.gridContainer}>
-            <View style={styles.gridRow}>
-              {/* 1. Rating Tooltip */}
-              <Pressable style={styles.ratingBox} onPress={() => setActiveTooltip('rating')}>
-                <View style={styles.ratingCircle}>
-                  <Text style={styles.ratingNumber}>7.5</Text>
-                </View>
-                <Tooltip id="rating" leftOffset={50} />
-              </Pressable>
-
-              {/* 2. Room Tooltip */}
-              <Pressable style={styles.roomBox} onPress={() => setActiveTooltip('rooms')}>
-                <Text style={styles.roomTextLarge}>1</Text>
-                <Text style={styles.roomTextSmall}>BR</Text>
-                <Tooltip id="rooms" leftOffset={-40} />
-              </Pressable>
-
-              {/* 3. Price / OFF PLAN Tooltip */}
-              <View style={styles.priceBox}>
-                <Pressable onPress={() => setActiveTooltip('offPlan')}>
-                   <Text style={styles.labelTiny}>OFF PLAN</Text>
-                </Pressable>
-                <View style={styles.priceRow}>
-                  <Text style={styles.currencySmall}>AED</Text>
-                  <Text style={styles.priceLarge}>1.225</Text>
-                  <Text style={styles.priceUnit}>mn</Text>
-                </View>
-                <Tooltip id="offPlan" leftOffset={-100} width={220} />
-              </View>
-            </View>
-
-            <View style={styles.gridRow}>
-              {/* 4. Area Tooltip (Now "Apartment") */}
-              <Pressable style={styles.aptBox} onPress={() => setActiveTooltip('area')}>
-                <Text style={styles.labelTiny}>APT</Text>
-                <View style={styles.aptRow}>
-                  <View style={styles.yellowPill}>
-                    <Text style={styles.pillText}>ft²</Text>
-                    <Feather name="chevron-down" size={10} color="#000" />
-                  </View>
-                  <Text style={styles.statValueLarge}>776</Text>
-                </View>
-                <Tooltip id="area" width={220} />
-              </Pressable>
-
-              {/* 5. SC/ft Tooltip */}
-              <Pressable style={styles.smallStatBox} onPress={() => setActiveTooltip('sc')}>
-                <Text style={styles.statLabelTop}>SC/ft²</Text>
-                <Text style={styles.statValueMedium}>11</Text>
-                <Tooltip id="sc" leftOffset={-80} />
-              </Pressable>
-
-              {/* 6. Pr/ft Tooltip */}
-              <Pressable style={styles.smallStatBox} onPress={() => setActiveTooltip('pr')}>
-                <Text style={styles.statLabelTop}>Pr/ft²</Text>
-                <Text style={styles.statValueMedium}>1,578</Text>
-                <Tooltip id="pr" leftOffset={-120} />
-              </Pressable>
-
-              {/* 7. DLD Tooltip (NEW) */}
-              <Pressable style={styles.smallStatBox} onPress={() => setActiveTooltip('dld')}>
-                <Text style={styles.statLabelTop}>DLD</Text>
-                <Text style={styles.statValueMedium}>49</Text>
-                <Text style={styles.statUnitTiny}>k</Text>
-                <Tooltip id="dld" leftOffset={-150} width={200} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* 70/30 Payment Plan Card */}
-          <View style={styles.paymentCard}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>70/30</Text>
-              <Pressable onPress={() => router.push("/timeline")}>
-                <Feather name="maximize-2" size={14} color="#aaa" />
-              </Pressable>
-            </View>
-            <View style={styles.centerPercent}>
-              <Text style={styles.bigPercent}>{currentTimelineItem.percent}</Text>
-              <Text style={styles.percentSymbol}>%</Text>
-            </View>
-            <View style={styles.dateLabelRow}>
-               <Text style={styles.dateLabelLeft}>{currentTimelineItem.date}</Text>
-               <Text style={styles.aedLabelCenter}>
-                 AED <Text style={{color:'#fff', fontWeight:'700'}}>{currentTimelineItem.value}</Text>
-               </Text>
-            </View>
-            <View 
-              style={styles.timelineContainer}
-              onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}
-              {...panResponder.panHandlers} 
-            >
-              {sliderWidth > 0 && (
-                <View style={[styles.redTriangleContainer, { left: getTrianglePosition() }]}>
-                  <Text style={styles.redTriangle}>▼</Text>
-                </View>
-              )}
-              <View style={styles.timelineLine} />
-              <View style={styles.dotsRow}>
-                {TIMELINE_DATA.map((_, i) => (
-                   <View 
-                      key={i} 
-                      style={[
-                        styles.dot, 
-                        i === timelineIndex && styles.dotActive, 
-                        i < timelineIndex && styles.dotFilled 
-                      ]} 
-                   />
-                ))}
-              </View>
-              <View style={styles.timelineLabels}>
-                <Text style={styles.timeLabel}>Jan 26</Text>
-                <Text style={styles.timeLabel}>Jun 26</Text>
-                <Text style={styles.timeLabel}>Jan 27</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Strategies Carousel */}
-          <View style={{ marginTop: 24 }}>
-             <FlatList
-               ref={flatListRef}
-               data={STRATEGIES}
-               renderItem={renderItem}
-               keyExtractor={(item) => item.id}
-               horizontal
-               pagingEnabled
-               showsHorizontalScrollIndicator={false}
-               onScroll={onScroll}
-               scrollEventThrottle={16}
-             />
-             <View style={styles.dotsContainer}>
-               {STRATEGIES.map((_, index) => {
-                 const isActive = index === activeIndex;
-                 return (
-                   <View
-                     key={index}
-                     style={[
-                       styles.paginationDot,
-                       isActive ? styles.paginationDotActive : styles.paginationDotInactive
-                     ]}
-                   />
-                 );
-               })}
-             </View>
-          </View>
-           <View style={{height: 100}} /> 
-        </ScrollView>
-      </SafeAreaView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.tabBar}>
         <TouchableOpacity>
-          <Ionicons name="home-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Feather name="file-text" size={23} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.centerButton} onPress={() => router.push("/form1")}>
-          <Text style={styles.plus}>+</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Feather name="search" size={23} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/Profile")}>
-          <Ionicons name="person-circle-outline" size={28} color="#fff" />
+          <Ionicons name="ellipsis-horizontal" color="#D1D5DB" size={28} />
         </TouchableOpacity>
       </View>
-    </View>
+
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Top Stats Grid */}
+        <View style={styles.statsGrid}>
+          {/* Rating Circle */}
+          <View style={[styles.card, styles.ratingCard]}>
+            <View style={{ transform: [{ rotate: '-90deg' }] }}>
+              <Svg height="48" width="48" viewBox="0 0 48 48">
+                <Circle 
+                  cx="24" 
+                  cy="24" 
+                  r="20" 
+                  stroke="#333" 
+                  strokeWidth="4" 
+                  fill="transparent" 
+                />
+                <Circle
+                  cx="24" 
+                  cy="24" 
+                  r="20"
+                  stroke="#bef264"
+                  strokeWidth="4"
+                  fill="transparent"
+                  strokeDasharray="125"
+                  strokeDashoffset="30"
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </View>
+            <Text style={styles.ratingText}>7.5</Text>
+          </View>
+
+          {/* 1 BR Box */}
+          <View style={[styles.card, styles.brCard]}>
+            <View style={styles.rowBaseline}>
+              <Text style={styles.brText}>1</Text>
+              <Text style={styles.brLabel}>BR</Text>
+            </View>
+          </View>
+
+          {/* Price Box */}
+          <View style={[styles.card, styles.priceCard]}>
+            <Text style={styles.labelSmall}>OFF PLAN</Text>
+            <View style={[styles.rowBetween, { marginTop: 4 }]}>
+              <Text style={styles.currencyLabel}>AED</Text>
+              <View style={styles.rowBaseline}>
+                <Text style={styles.priceMain}>1.225</Text>
+                <Text style={styles.priceSub}>mn</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Secondary Stats Row (5 Columns) */}
+        <View style={styles.secondaryGrid}>
+          {/* 1. APT */}
+          <View style={styles.secondaryCard}>
+            <Text style={styles.secondaryLabelLeft}>APT</Text>
+            <View style={styles.tagYellow}>
+              <Text style={styles.tagText}>ft²</Text>
+              <Ionicons name="chevron-down" size={8} color="#000" />
+            </View>
+          </View>
+
+          {/* 2. Value */}
+          <View style={styles.secondaryCard}>
+            <Text style={styles.secondaryValue}>776</Text>
+          </View>
+
+          {/* 3. SC/ft */}
+          <View style={styles.secondaryCard}>
+            <Text style={styles.secondaryLabel}>SC/ft²</Text>
+            <Text style={styles.secondaryValue}>11</Text>
+          </View>
+
+          {/* 4. Pr/ft */}
+          <View style={styles.secondaryCard}>
+            <Text style={styles.secondaryLabel}>Pr/ft²</Text>
+            <Text style={styles.secondaryValueSmall}>1,578</Text>
+          </View>
+
+          {/* 5. DLD */}
+          <View style={styles.secondaryCard}>
+            <Text style={styles.secondaryLabel}>DLD</Text>
+            <View style={styles.rowBaseline}>
+              <Text style={styles.secondaryValue}>49</Text>
+              <Text style={styles.secondaryUnit}>k</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* --- MAIN SLIDER CARD --- */}
+        <View style={styles.mainCard}>
+          <View style={styles.rowBetween}>
+            <View style={styles.rowCenter}>
+              <Text style={styles.cardTitle}>40/60</Text>
+            </View>
+            <Ionicons name="expand" size={16} color="#9CA3AF" />
+          </View>
+
+          {/* Dynamic Content */}
+          <View style={styles.dynamicContent}>
+            {/* Percentage */}
+            <View style={styles.rowBaseline}>
+              <Text style={styles.percentageBig}>{currentPercentage}</Text>
+              <Text style={styles.percentageSmall}>%</Text>
+            </View>
+
+            {/* Info Row: Date - Amount - Status */}
+            <View style={styles.infoRow}>
+              {/* Left: Date */}
+              <Text style={styles.infoDate}>{currentDate}</Text>
+
+              {/* Center: Amount */}
+              <View style={styles.infoAmountContainer}>
+                {currentAmount > 0 && (
+                  <View style={styles.rowBaseline}>
+                    <Text style={styles.aedLabel}>AED</Text>
+                    <Text style={styles.amountValue}>{formatAED(currentAmount)}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Right: Status */}
+              <View style={styles.statusContainer}>
+                {statusText !== "" && (
+                  <Text style={[styles.statusText, { color: statusColor }]}>
+                    {statusText}
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Interactive Timeline */}
+          <View 
+            style={styles.sliderContainer} 
+            onLayout={(event) => setSliderWidth(event.nativeEvent.layout.width)}
+            onTouchStart={(evt) => {
+              handleTouch(evt.nativeEvent.locationX);
+            }}
+            onTouchMove={(evt) => {
+              handleTouch(evt.nativeEvent.locationX);
+            }}
+            {...panResponder.panHandlers}
+          >
+            {/* Track Line */}
+            <View style={styles.trackLine} pointerEvents="none" />
+
+            {/* Dots */}
+            <View style={styles.dotsContainer} pointerEvents="none">
+              {[...Array(TOTAL_MONTHS + 1)].map((_, i) => (
+                <View 
+                  key={i}
+                  style={[
+                    styles.dot,
+                    i <= sliderValue ? styles.dotActive : styles.dotInactive,
+                    (i === 0 || i === 6 || i === TOTAL_MONTHS) ? styles.dotLarge : styles.dotSmall,
+                    i === sliderValue ? styles.dotCurrent : null
+                  ]}
+                />
+              ))}
+            </View>
+
+            {/* Red Arrow Indicator */}
+            {sliderWidth > 0 && (
+              <View 
+                style={[
+                  styles.arrowContainer, 
+                  { left: (sliderValue / TOTAL_MONTHS) * sliderWidth }
+                ]}
+              >
+                <View style={styles.arrowTriangle} />
+                {/* Larger touch area for better dragging */}
+                <View style={styles.arrowTouchArea} />
+              </View>
+            )}
+
+            {/* Date Labels below */}
+            <View style={styles.labelsContainer} pointerEvents="none">
+              <Text style={styles.sliderLabel}>Jan 26</Text>
+              <Text style={styles.sliderLabel}>Jun 26</Text>
+              <Text style={styles.sliderLabel}>Jan 27</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Exit Strategies */}
+        <View style={styles.strategiesCard}>
+          <View style={[styles.rowBetween, { marginBottom: 16 }]}>
+            <View>
+              <Text style={styles.sectionHeader}>EXIT STRATEGIES</Text>
+              <Text style={styles.strategyTitle}>STP — Flipping</Text>
+            </View>
+            <View style={styles.rowCenter}>
+              <View style={styles.percentTag}>
+                <Text style={styles.percentTagText}>%</Text>
+                <Ionicons name="chevron-down" size={10} color="#000" style={{marginLeft: 2}}/>
+              </View>
+              <Ionicons name="expand" size={12} color="#9CA3AF" style={{marginLeft: 8}}/>
+            </View>
+          </View>
+
+          {/* Cards Grid */}
+          <View style={styles.strategyGrid}>
+            {/* Moderate */}
+            <View style={[styles.strategyBox, styles.bgModerate]}>
+              <Text style={styles.strategyBoxTitle}>Moderate</Text>
+              <View>
+                <View style={styles.rowBaseline}>
+                  <Text style={styles.boxPercent}>25.46</Text>
+                  <Text style={styles.boxPercentSmall}>%</Text>
+                </View>
+                <Text style={styles.boxValue}>AED 137.24k</Text>
+              </View>
+            </View>
+
+            {/* Conservative */}
+            <View style={[styles.strategyBox, styles.bgConservative]}>
+              <Text style={styles.strategyBoxTitle}>Conservative</Text>
+              <View>
+                <View style={styles.rowBaseline}>
+                  <Text style={styles.boxPercent}>7.87</Text>
+                  <Text style={styles.boxPercentSmall}>%</Text>
+                </View>
+                <Text style={styles.boxValue}>AED 42.42k</Text>
+              </View>
+            </View>
+
+            {/* Optimistic */}
+            <View style={[styles.strategyBox, styles.bgOptimistic]}>
+              <Text style={[styles.strategyBoxTitle, {opacity: 0.8}]}>Optimistic</Text>
+              <View>
+                <View style={styles.rowBaseline}>
+                  <Text style={styles.boxPercent}>34.46</Text>
+                  <Text style={styles.boxPercentSmall}>%</Text>
+                </View>
+                <Text style={styles.boxValue}>AED 185.75k</Text>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.disclaimer}>
+            ** The project will generate an estimated ROE of ~25.46% based on <Text style={styles.boldText}>AED539k</Text> capital invested by March 2026.
+          </Text>
+
+          {/* Pagination */}
+          <View style={styles.pagination}>
+            <View style={[styles.pageDot, styles.pageDotActive]} />
+            <View style={styles.pageDot} />
+            <View style={styles.pageDot} />
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Nav Mock (Optional based on screenshot) */}
+      <View style={styles.bottomNav}>
+        <Ionicons name="home-outline" size={24} color="#9CA3AF" />
+        <Ionicons name="document-text-outline" size={24} color="#9CA3AF" />
+        <View style={styles.fab}>
+          <Ionicons name="add" size={24} color="#000" />
+        </View>
+        <Ionicons name="search-outline" size={24} color="#9CA3AF" />
+        <View style={styles.avatar}>
+          <Ionicons name="person" size={24} color="#FFF" /> 
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
     flex: 1,
-    backgroundColor: "#12141D",
+    backgroundColor: '#121214',
   },
-  safeArea: {
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
+    padding: 16,
+    paddingBottom: 100,
   },
+  // Header
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 20,
-    marginTop: 50,
+    paddingVertical: 10,
   },
-  headerTitleContainer: { alignItems: "center" },
-  headerTitle: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  headerSubtitle: { color: "#888", fontSize: 12, marginTop: 2 },
-  gridContainer: { gap: 10, marginBottom: 16 },
-  gridRow: { flexDirection: "row", gap: 10, height: 80, zIndex: 10 }, 
-
-  // Tooltip
-  tooltipContainer: {
-    position: 'absolute',
-    bottom: '100%', 
-    marginBottom: 10,
-    left: 0,
-    zIndex: 999,
+  headerCenter: {
     alignItems: 'center',
   },
-  tooltipPointer: {
+  headerTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerSubtitle: {
+    color: '#9CA3AF',
+    fontSize: 12,
+  },
+  // Top Stats
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 8,
+  },
+  card: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    height: 80,
+    justifyContent: 'center',
+  },
+  ratingCard: {
+    flex: 1,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  ratingText: {
+    position: 'absolute',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  brCard: {
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#4B5563',
+  },
+  priceCard: {
+    flex: 2,
+    paddingHorizontal: 12,
+  },
+  rowBaseline: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  rowCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  brText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: '300',
+  },
+  brLabel: {
+    color: 'white',
+    fontSize: 12,
+    marginLeft: 2,
+  },
+  labelSmall: {
+    color: '#9CA3AF',
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  currencyLabel: {
+    color: '#6B7280',
+    fontSize: 12,
+  },
+  priceMain: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: '300',
+    lineHeight: 32,
+  },
+  priceSub: {
+    color: 'white',
+    fontSize: 14,
+    marginLeft: 2,
+  },
+  // Secondary Grid
+  secondaryGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 16,
+  },
+  secondaryCard: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  secondaryLabelLeft: {
+    color: '#9CA3AF',
+    fontSize: 10,
+    width: '100%',
+    textAlign: 'left',
+    paddingLeft: 4,
+    marginBottom: 4,
+  },
+  secondaryLabel: {
+    color: '#9CA3AF',
+    fontSize: 10,
+    marginBottom: 4,
+  },
+  tagYellow: {
+    backgroundColor: '#eef878',
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  tagText: {
+    color: 'black',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginRight: 2,
+  },
+  secondaryValue: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  secondaryValueSmall: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  secondaryUnit: {
+    color: 'white',
+    fontSize: 10,
+  },
+  // Main Slider Card
+  mainCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  cardTitle: {
+    color: '#D1D5DB',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  dynamicContent: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  percentageBig: {
+    color: 'white',
+    fontSize: 64,
+    fontWeight: '300',
+    letterSpacing: -2,
+    lineHeight: 70,
+  },
+  percentageSmall: {
+    color: '#9CA3AF',
+    fontSize: 24,
+    fontWeight: '300',
+    marginLeft: 4,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+    height: 24,
+  },
+  infoDate: {
+    flex: 1,
+    color: '#D1D5DB',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'left',
+  },
+  infoAmountContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  aedLabel: {
+    color: '#9CA3AF',
+    fontSize: 10,
+    marginRight: 4,
+  },
+  amountValue: {
+    color: '#D1D5DB',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  statusContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Slider Component
+  sliderContainer: {
+    height: 60,
+    justifyContent: 'center',
+    marginTop: 8,
+    width: '100%',
+    position: 'relative',
+    zIndex: 10,
+    backgroundColor: 'transparent',
+  },
+  trackLine: {
+    position: 'absolute',
+    height: 2,
+    backgroundColor: '#4B5563',
+    width: '100%',
+    top: 24,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    width: '100%',
+    top: 20, // (24 track top) - (half dot height approx)
+    paddingHorizontal: 2,
+  },
+  dot: {
+    borderRadius: 99,
+  },
+  dotActive: {
+    backgroundColor: '#eef878',
+  },
+  dotInactive: {
+    backgroundColor: '#4B5563',
+  },
+  dotLarge: {
+    width: 10,
+    height: 10,
+    top: 0,
+  },
+  dotSmall: {
+    width: 6,
+    height: 6,
+    top: 2,
+  },
+  dotCurrent: {
+    backgroundColor: '#10B981', // Green color for current position
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    width: 12,
+    height: 12,
+    top: 0,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  arrowContainer: {
+    position: 'absolute',
+    top: 4, 
+    width: 32, // Larger container width for better touch
+    height: 32, // Add height for touch area
+    marginLeft: -16, // Center align with larger width
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrowTouchArea: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    backgroundColor: 'transparent',
+    top: -10,
+  },
+  arrowTriangle: {
     width: 0,
     height: 0,
     backgroundColor: 'transparent',
     borderStyle: 'solid',
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8, // Points DOWN
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 0,
+    borderTopWidth: 10,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: '#32363F', 
-    marginTop: -1, 
+    borderTopColor: '#DC2626', // Red-600
   },
-  tooltipBox: {
-    backgroundColor: '#32363F',
-    borderRadius: 8,
+  labelsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  sliderLabel: {
+    color: '#6B7280',
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  // Strategies
+  strategiesCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 16,
+    paddingBottom: 24,
+    marginBottom: 40,
+  },
+  sectionHeader: {
+    color: '#9CA3AF',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  strategyTitle: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  percentTag: {
+    backgroundColor: '#eef878',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  percentTagText: {
+    color: 'black',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  strategyGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  strategyBox: {
+    flex: 1,
+    height: 112,
+    borderRadius: 12,
     padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    width: '100%'
+    justifyContent: 'space-between',
   },
-  tooltipHeader: {
+  bgModerate: {
+    backgroundColor: '#eef878',
+    // shadow simulation
+    elevation: 4,
+    shadowColor: '#eef878',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  bgConservative: {
+    backgroundColor: '#fcfde1', // Light cream
+    opacity: 0.9,
+  },
+  bgOptimistic: {
+    backgroundColor: '#a3b808', // Darker yellow/green
+  },
+  strategyBoxTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  boxPercent: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  boxPercentSmall: {
+    fontSize: 10,
+    color: 'black',
+    marginLeft: 2,
+    marginBottom: 4,
+  },
+  boxValue: {
+    fontSize: 9,
+    color: 'black',
+    opacity: 0.8,
+  },
+  disclaimer: {
+    marginTop: 16,
+    color: '#6B7280',
+    fontSize: 10,
+    lineHeight: 14,
+  },
+  boldText: {
+    color: '#D1D5DB',
+    fontWeight: 'bold',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+  },
+  pageDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4B5563',
+    borderWidth: 1,
+    borderColor: '#6B7280',
+  },
+  pageDotActive: {
+    backgroundColor: '#eef878',
+    borderColor: '#eef878',
+  },
+  // Bottom Nav
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#121214',
+    borderTopWidth: 1,
+    borderTopColor: '#1F2937',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    paddingBottom: 30, // Safe area
   },
-  tooltipTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  tooltipText: {
-    color: '#ccc',
-    fontSize: 12,
-    lineHeight: 18,
-  },
-
-  // Grid Items
-  ratingBox: {
-    width: 80,
-    backgroundColor: "#1A1D24",
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1,
-  },
-  ratingCircle: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
-    borderWidth: 4,
-    borderColor: "#C0D926",
-    borderLeftColor: "#2A3038",
-    justifyContent: "center",
-    alignItems: "center",
-    transform: [{rotate: '45deg'}]
-  },
-  ratingNumber: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-    transform: [{rotate: '-45deg'}]
-  },
-  roomBox: {
-    width: 80,
-    backgroundColor: "#13161C",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#444",
-    justifyContent: "center",
-    flexDirection: "row",
-    alignItems: "baseline",
-    zIndex: 1,
-  },
-  roomTextLarge: { color: "#fff", fontSize: 32, fontWeight: "400" },
-  roomTextSmall: { color: "#ccc", fontSize: 12, marginLeft: 2 },
-  priceBox: {
-    flex: 1,
-    backgroundColor: "#1A1D24",
-    borderRadius: 16,
-    padding: 12,
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  priceRow: { flexDirection: "row", alignItems: "baseline", marginTop: 4 },
-  priceLarge: { color: "#fff", fontSize: 30, fontWeight: "500", letterSpacing: -1 },
-  currencySmall: { color: "#888", fontSize: 12, marginRight: 6 },
-  priceUnit: { color: "#888", fontSize: 12 },
-  aptBox: {
-    flex: 2,
-    backgroundColor: "#1A1D24",
-    borderRadius: 16,
-    padding: 12,
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  aptRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
-  yellowPill: {
-    backgroundColor: "#DFFF4F",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-    flexDirection: 'row',
+  fab: {
+    backgroundColor: '#eef878',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 4
+    marginTop: -40,
+    shadowColor: '#a3b808',
+    shadowOffset: {
+      width: 0, 
+      height: 4
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  pillText: { fontSize: 12, fontWeight: "700", color: "#000" },
-  statValueLarge: { color: "#fff", fontSize: 24, fontWeight: "500" },
-  smallStatBox: {
-    flex: 1,
-    backgroundColor: "#13161C",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#333",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1,
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#6B7280',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  statLabelTop: { color: "#888", fontSize: 10, position: 'absolute', top: 10 },
-  statValueMedium: { color: "#fff", fontSize: 18, fontWeight: "500", marginTop: 14 },
-  statUnitTiny: { color: "#888", fontSize: 10 },
-  labelTiny: { color: "#888", fontSize: 10, textTransform: "uppercase" },
-
-  // 70/30 Card
-  paymentCard: {
-    backgroundColor: "#22252B",
-    borderRadius: 20,
-    padding: 20,
-    height: 240,
-    marginTop: 6,
-    zIndex: 0,
-  },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between" },
-  cardTitle: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  centerPercent: { 
-    alignItems: "center", 
-    justifyContent: "center", 
-    flexDirection: "row",
-    marginTop: 10
-  },
-  bigPercent: { fontSize: 72, color: "#fff", fontWeight: "600", letterSpacing: -2 },
-  percentSymbol: { fontSize: 24, color: "#fff", marginTop: 14, fontWeight: '600' },
-  dateLabelRow: {flexDirection:'row', justifyContent:'space-between', width:'100%', paddingHorizontal: 10},
-  dateLabelLeft: {color:'#bbb', fontSize: 14, fontWeight: '600'},
-  aedLabelCenter: {color:'#888', fontSize: 12, position:'absolute', left: 0, right: 0, textAlign:'center', top: -10},
-  timelineContainer: { marginTop: 20, position: 'relative', height: 50, justifyContent: 'center' },
-  redTriangleContainer: { 
-    position: 'absolute', 
-    top: -16, 
-    marginLeft: -6,
-    zIndex: 10,
-    alignItems: 'center'
-  },
-  redTriangle: { color: '#FF3B30', fontSize: 18, transform: [{rotate: '180deg'}] },
-  timelineLine: { height: 2, backgroundColor: "#555", width: "100%", position: "absolute", top: 12 },
-  dotsRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", position:'absolute', top: 7 },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#fff", borderWidth: 0 },
-  dotActive: { backgroundColor: "#DFFF4F", width: 16, height: 16, borderRadius: 8, marginTop: -3 },
-  dotFilled: { backgroundColor: "#f6e960ff" },
-  timelineLabels: { flexDirection: "row", justifyContent: "space-between", marginTop: 32 },
-  timeLabel: { color: "#888", fontSize: 12 },
-
-  // Bottom Nav
-  tabBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 75,
-    backgroundColor: "#1A1C20",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  centerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1FE74",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  plus: { fontSize: 22, color: "#000", marginTop: -1 },
-
-  // Carousel Styles
-  slideContainer: { width: CONTAINER_WIDTH, paddingRight: 4 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  smallLabel: { color: COLORS.textGrey, fontSize: 12, fontWeight: '600', marginBottom: 4 },
-  mainTitle: { color: COLORS.textWhite, fontSize: 16, fontWeight: '700' },
-  topRightContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  percentBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.moderateBg, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, gap: 4 },
-  expandIcon: { padding: 2 },
-  counterContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', borderRadius: 8, padding: 2 },
-  counterBtn: { backgroundColor: COLORS.moderateBg, width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  counterBtnText: { fontSize: 16, fontWeight: 'bold', color: '#000' },
-  counterValue: { color: '#FFF', fontSize: 18, fontWeight: '600', marginHorizontal: 10 },
-  cardsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 16 },
-  strategyCardItem: { flex: 1, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', minHeight: 110 },
-  cardLabel: { color: COLORS.textDark, fontSize: 10, fontWeight: '600', marginBottom: 8 },
-  cardPercent: { color: COLORS.textDark, fontSize: 22, fontWeight: '700', marginBottom: 4 },
-  cardValue: { color: COLORS.textDark, fontSize: 10, opacity: 0.7 },
-  footerText: { color: COLORS.textGrey, fontSize: 12, lineHeight: 18, textAlign: 'left', marginBottom: 20 },
-  footerTextBold: { fontWeight: '700', color: '#AAA' },
-  dotsContainer: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 10 },
-  paginationDot: { width: 6, height: 6, borderRadius: 3 },
-  paginationDotActive: { backgroundColor: COLORS.highlight, width: 8, height: 8, borderRadius: 4, marginTop: -1 },
-  paginationDotInactive: { backgroundColor: COLORS.inactiveDot, borderWidth: 1, borderColor: '#000' },
-  menuOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 100 },
-  sideMenu: { position: 'absolute', top: 90, right: 16, backgroundColor: '#2A2D35', borderRadius: 16, padding: 8, zIndex: 101, minWidth: 200, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 16, gap: 16 },
-  menuText: { color: '#fff', fontSize: 16, fontWeight: '400' },
 });

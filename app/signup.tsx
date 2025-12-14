@@ -154,7 +154,7 @@ export default function Signup() {
 }
 
 const COLORS = {
-  background: "#101010",
+  background: "#181A20",
   primary: "#EEFB73", // Lime Yellow
   textWhite: "#FFFFFF",
   textGrey: "#6B6B6B",

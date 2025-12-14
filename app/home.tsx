@@ -1,9 +1,8 @@
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
-  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -11,7 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 // 1. Updated Data with 'status' to allow filtering
@@ -25,7 +24,7 @@ const ALL_PROPERTIES = [
 ];
 
 const COLORS = {
-  bg: "#101010",        // Deep dark background
+  bg: "#181A20",        // Deep dark background
   cardBg: "#1C1C1E",    // Search bar/Input background
   primary: "#DFFF4F",   // The Lime Yellow accent
   textWhite: "#FFFFFF",
