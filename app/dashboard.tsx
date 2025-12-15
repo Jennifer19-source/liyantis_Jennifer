@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   Dimensions,
@@ -32,6 +33,8 @@ const addMonths = (date: Date, months: number) => {
 };
 
 export default function App() {
+  const router = useRouter();
+  
   // --- State ---
   const [sliderValue, setSliderValue] = useState(2); // Start index (March)
   const [sliderWidth, setSliderWidth] = useState(0);
@@ -91,11 +94,11 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#121214" />
+      <StatusBar barStyle="light-content" backgroundColor="#181A20" />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" color="#D1D5DB" size={28} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -365,17 +368,27 @@ export default function App() {
         </View>
       </ScrollView>
 
-      {/* Bottom Nav Mock (Optional based on screenshot) */}
-      <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#9CA3AF" />
-        <Ionicons name="document-text-outline" size={24} color="#9CA3AF" />
-        <View style={styles.fab}>
-          <Ionicons name="add" size={24} color="#000" />
-        </View>
-        <Ionicons name="search-outline" size={24} color="#9CA3AF" />
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={24} color="#FFF" /> 
-        </View>
+      {/* Bottom Navigation */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity onPress={() => router.push("/home")}>
+          <Ionicons name="home-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <Feather name="file-text" size={23} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.centerButton} onPress={() => router.push("/form1")}>
+          <Text style={styles.plus}>+</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <Feather name="search" size={23} color="#fff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/Profile")}>
+          <Ionicons name="person-circle-outline" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -384,7 +397,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121214',
+    backgroundColor: '#181A20',
   },
   scrollView: {
     flex: 1,
@@ -399,7 +412,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: 50,
+    paddingBottom: 10,
   },
   headerCenter: {
     alignItems: 'center',
@@ -421,7 +435,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   card: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#27292D',
     borderRadius: 12,
     height: 80,
     justifyContent: 'center',
@@ -499,7 +513,7 @@ const styles = StyleSheet.create({
   },
   secondaryCard: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#27292D',
     borderRadius: 12,
     height: 64,
     alignItems: 'center',
@@ -549,7 +563,7 @@ const styles = StyleSheet.create({
   },
   // Main Slider Card
   mainCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#27292D',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -717,7 +731,7 @@ const styles = StyleSheet.create({
   },
   // Strategies
   strategiesCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#27292D',
     borderRadius: 16,
     padding: 16,
     paddingBottom: 24,
@@ -824,45 +838,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#eef878',
     borderColor: '#eef878',
   },
-  // Bottom Nav
-  bottomNav: {
-    position: 'absolute',
+  // Bottom Navigation
+  tabBar: {
+    position: "absolute",
     bottom: 0,
-    width: '100%',
-    backgroundColor: '#121214',
-    borderTopWidth: 1,
-    borderTopColor: '#1F2937',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    paddingBottom: 30, // Safe area
+    left: 0,
+    right: 0,
+    height: 75,
+    backgroundColor: "#1A1C20",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
-  fab: {
-    backgroundColor: '#eef878',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -40,
-    shadowColor: '#a3b808',
-    shadowOffset: {
-      width: 0, 
-      height: 4
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+  centerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F1FE74",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  avatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#6B7280',
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
+  plus: { 
+    fontSize: 22, 
+    color: "#000", 
+    marginTop: -1 
   },
 });
