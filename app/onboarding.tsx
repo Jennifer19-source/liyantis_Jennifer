@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
-import { Text, View, StyleSheet, TouchableOpacity, StatusBar, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
+import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#15171c',
+    backgroundColor: '#181A20',
     position: 'relative',
   },
   imageContainer: {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 15,
     borderWidth: 3, // Added border for the "cutout" effect
-    borderColor: '#15171c', // Border matches background color
+    borderColor: '#181A20', // Border matches background color
   },
   
   content: {

@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+
+
 import {
   FlatList,
-  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -12,7 +13,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image
 } from "react-native";
+
 
 // Projects data
 const ALL_PROPERTIES = [
@@ -465,8 +468,8 @@ const ALL_PROPERTIES = [
 ];
 
 const COLORS = {
-  bg: "#181A20",        // Deep dark background
-  cardBg: "#262A34",    // Search bar/Input background
+  bg: "#101010",        // Deep dark background
+  cardBg: "#1C1C1E",    // Search bar/Input background
   primary: "#DFFF4F",   // The Lime Yellow accent
   textWhite: "#FFFFFF",
   textGrey: "#8E8E93",

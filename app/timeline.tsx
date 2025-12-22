@@ -515,8 +515,11 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: "#12141D",
+    backgroundColor: "#181A20", // Darker background
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
+  
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 0,
@@ -586,6 +589,7 @@ const styles = StyleSheet.create({
   },
   tooltipTitle: { color: '#fff', fontSize: 12, fontWeight: '700' },
   tooltipText: { color: '#ccc', fontSize: 10, lineHeight: 14 },
+  checkboxSquare: { width: 12, height: 12, borderWidth: 1.5, borderColor: '#181A20', borderRadius: 2 },
 
 
   // Grid Items
@@ -673,6 +677,14 @@ const styles = StyleSheet.create({
   statValueMedium: { color: "#fff", fontSize: 17, fontWeight: "500", marginTop: 14 },
   statUnitTiny: { color: "#888", fontSize: 9 },
   labelTiny: { color: "#888", fontSize: 9, textTransform: "uppercase" },
+  // Rows
+  row: { flexDirection: "row", alignItems: "center", height: 50 },
+  dateText: { color: "#888", fontSize: 13, width: 60 },
+  
+  timelineCol: { width: 30, alignItems: "center", justifyContent:'center' },
+  svgLineWrapper: { position: 'absolute', top: 20, zIndex: -1 },
+  iconWrapper: { width: 20, height: 20, justifyContent:'center', alignItems:'center', backgroundColor:'#181A20' }, // Bg covers the line behind icon
+  iconContainer: { width: 20, alignItems:'center'},
 
 
   // Payment Card
@@ -738,6 +750,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
+  introContainer: {
+  marginTop: 8,
+  marginBottom: 12,
+  paddingHorizontal: 4,
+},
+
+introText: {
+  color: '#888',
+  fontSize: 12,
+  textAlign: 'center',
+  lineHeight: 16,
+},
+
   plus: { fontSize: 32, color: "#000", marginTop: -2 },
 
 

@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -8,18 +8,18 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from 'react-native';
 
 const COLORS = {
-  background: '#121214', // Slightly softer dark background
-  primary: '#F0FD73',    // The specific Lime/Yellow from the screenshot
+  background: '#181A20',
+  primary: '#DFFF4F',
   textWhite: '#FFFFFF',
   textGrey: '#B3B3B3',
   searchBg: '#1C1C1E',
   cardText: '#1A1A1A',
 };
+
 
 export default function HomeScreen() {
   const router = useRouter();

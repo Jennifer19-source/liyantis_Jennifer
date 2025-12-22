@@ -1,7 +1,7 @@
 import { AntDesign, Feather, FontAwesome } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -38,21 +38,7 @@ export default function BoardingSlideshow() {
     },
   ];
 
-  // Auto-scroll logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % slides.length;
-        scrollViewRef.current?.scrollTo({
-          x: nextIndex * width,
-          animated: true,
-        });
-        return nextIndex;
-      });
-    }, 4000); 
-
-    return () => clearInterval(interval);
-  }, []);
+  // Auto-scroll removed for direct user interaction
 
   const handleScroll = (event: any) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -88,7 +74,7 @@ export default function BoardingSlideshow() {
             
             {/* GRADIENT OVERLAY FOR TEXT READABILITY */}
             <LinearGradient
-                colors={['transparent', '#14141C']}
+                colors={['transparent', '#181A20']}
                 style={styles.imageGradient}
                 locations={[0.4, 1]}
             />
@@ -157,7 +143,7 @@ export default function BoardingSlideshow() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#14141C", // Dark background matching the screenshot
+    backgroundColor: "#181A20", // Dark background matching the screenshot
   },
   carousel: {
     flex: 1,
