@@ -1,12 +1,6 @@
-jai
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
- main
 import {
   Dimensions,
   FlatList,
@@ -125,13 +119,6 @@ const TOOLTIP_CONTENT = {
   dld: { title: "DLD", text: "This section contains Dubai land department transfer fee." }
 };
 
- jai
-export default function App() {
-  const router = useRouter();
-  
-  // --- State ---
-  const [sliderValue, setSliderValue] = useState(2); // Start index (March)
-
 export default function DashboardScreen() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
@@ -153,7 +140,6 @@ export default function DashboardScreen() {
   const SCREENSHOT_TIMELINE_INDEX = 2; // Index for 'Mar 26'
 
   const [timelineIndex, setTimelineIndex] = useState(SCREENSHOT_TIMELINE_INDEX);
- main
   const [sliderWidth, setSliderWidth] = useState(0);
   const dragStartX = useRef(0);
 
@@ -187,24 +173,6 @@ export default function DashboardScreen() {
     const position = (timelineIndex / (TIMELINE_DATA.length - 1)) * sliderWidth;
     return position;
   };
-
- jai
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#181A20" />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" color="#D1D5DB" size={28} />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>The Weave, JVC</Text>
-          <Text style={styles.headerSubtitle}>by Al Ghurair</Text>
-        </View>
-        <TouchableOpacity>
-          <Ionicons name="ellipsis-horizontal" color="#D1D5DB" size={28} />
-        </TouchableOpacity>
 
   // --- Dot Renderer Function (Crucial for screenshot match) ---
   const TimelineDots = () => {
@@ -250,7 +218,6 @@ export default function DashboardScreen() {
           }
         })}
 
- main
       </View>
     );
   };
@@ -535,27 +502,6 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
- jai
-      </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity onPress={() => router.push("/home")}>
-          <Ionicons name="home-outline" size={24} color="#fff" />
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-          <Feather name="file-text" size={23} color="#fff" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.centerButton} onPress={() => router.push("/form1")}>
-          <Text style={styles.plus}>+</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-          <Feather name="search" size={23} color="#fff" />
-        </TouchableOpacity>
-
       </SafeAreaView>
 
       {/* Bottom Navigation */}
@@ -572,7 +518,6 @@ export default function DashboardScreen() {
         <TouchableOpacity>
           <Ionicons name="document-text-outline" size={24} color="#fff" />
         </TouchableOpacity>
- main
         <TouchableOpacity onPress={() => router.push("/Profile")}>
           <Ionicons name="person-circle-outline" size={28} color="#fff" />
         </TouchableOpacity>
@@ -584,348 +529,12 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
- jai
-    backgroundColor: '#181A20',
-
     backgroundColor: COLORS.primaryDark,
- main
   },
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 0,
   },
- jai
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 10,
-  },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    color: '#9CA3AF',
-    fontSize: 12,
-  },
-  // Top Stats
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    gap: 8,
-  },
-  card: {
-    backgroundColor: '#27292D',
-    borderRadius: 12,
-    height: 80,
-    justifyContent: 'center',
-  },
-  ratingCard: {
-    flex: 1,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  ratingText: {
-    position: 'absolute',
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  brCard: {
-    flex: 1,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#4B5563',
-  },
-  priceCard: {
-    flex: 2,
-    paddingHorizontal: 12,
-  },
-  rowBaseline: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  rowCenter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  brText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: '300',
-  },
-  brLabel: {
-    color: 'white',
-    fontSize: 12,
-    marginLeft: 2,
-  },
-  labelSmall: {
-    color: '#9CA3AF',
-    fontSize: 10,
-    textTransform: 'uppercase',
-  },
-  currencyLabel: {
-    color: '#6B7280',
-    fontSize: 12,
-  },
-  priceMain: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: '300',
-    lineHeight: 32,
-  },
-  priceSub: {
-    color: 'white',
-    fontSize: 14,
-    marginLeft: 2,
-  },
-  // Secondary Grid
-  secondaryGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 6,
-    marginBottom: 16,
-  },
-  secondaryCard: {
-    flex: 1,
-    backgroundColor: '#27292D',
-    borderRadius: 12,
-    height: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 4,
-  },
-  secondaryLabelLeft: {
-    color: '#9CA3AF',
-    fontSize: 10,
-    width: '100%',
-    textAlign: 'left',
-    paddingLeft: 4,
-    marginBottom: 4,
-  },
-  secondaryLabel: {
-    color: '#9CA3AF',
-    fontSize: 10,
-    marginBottom: 4,
-  },
-  tagYellow: {
-    backgroundColor: '#eef878',
-    borderRadius: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  tagText: {
-    color: 'black',
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginRight: 2,
-  },
-  secondaryValue: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  secondaryValueSmall: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  secondaryUnit: {
-    color: 'white',
-    fontSize: 10,
-  },
-  // Main Slider Card
-  mainCard: {
-    backgroundColor: '#27292D',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  cardTitle: {
-    color: '#D1D5DB',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  dynamicContent: {
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  percentageBig: {
-    color: 'white',
-    fontSize: 64,
-    fontWeight: '300',
-    letterSpacing: -2,
-    lineHeight: 70,
-  },
-  percentageSmall: {
-    color: '#9CA3AF',
-    fontSize: 24,
-    fontWeight: '300',
-    marginLeft: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-    height: 24,
-  },
-  infoDate: {
-    flex: 1,
-    color: '#D1D5DB',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'left',
-  },
-  infoAmountContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  aedLabel: {
-    color: '#9CA3AF',
-    fontSize: 10,
-    marginRight: 4,
-  },
-  amountValue: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  statusContainer: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  // Slider Component
-  sliderContainer: {
-    height: 60,
-    justifyContent: 'center',
-    marginTop: 8,
-    width: '100%',
-    position: 'relative',
-    zIndex: 10,
-    backgroundColor: 'transparent',
-  },
-  trackLine: {
-    position: 'absolute',
-    height: 2,
-    backgroundColor: '#4B5563',
-    width: '100%',
-    top: 24,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    width: '100%',
-    top: 20, // (24 track top) - (half dot height approx)
-    paddingHorizontal: 2,
-  },
-  dot: {
-    borderRadius: 99,
-  },
-  dotActive: {
-    backgroundColor: '#eef878',
-  },
-  dotInactive: {
-    backgroundColor: '#4B5563',
-  },
-  dotLarge: {
-    width: 10,
-    height: 10,
-    top: 0,
-  },
-  dotSmall: {
-    width: 6,
-    height: 6,
-    top: 2,
-  },
-  dotCurrent: {
-    backgroundColor: '#10B981', // Green color for current position
-    borderWidth: 2,
-    borderColor: '#ffffff',
-    width: 12,
-    height: 12,
-    top: 0,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  arrowContainer: {
-    position: 'absolute',
-    top: 4, 
-    width: 32, // Larger container width for better touch
-    height: 32, // Add height for touch area
-    marginLeft: -16, // Center align with larger width
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowTouchArea: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    backgroundColor: 'transparent',
-    top: -10,
-  },
-  arrowTriangle: {
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderBottomWidth: 0,
-    borderTopWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#DC2626', // Red-600
-  },
-  labelsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-  },
-  sliderLabel: {
-    color: '#6B7280',
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  // Strategies
-  strategiesCard: {
-    backgroundColor: '#27292D',
-
   contentContainer: {
     flex: 1,
     paddingHorizontal: CARD_PADDING,
@@ -1001,7 +610,6 @@ const styles = StyleSheet.create({
   // Payment Card
   paymentCard: {
     backgroundColor: COLORS.paymentCardDark,
- main
     borderRadius: 16,
     padding: 14,
     height: 180, 
@@ -1011,41 +619,6 @@ const styles = StyleSheet.create({
   // NEW: White border for payment card
   paymentCardBorder: {
     borderWidth: 1,
- jai
-    borderColor: '#6B7280',
-  },
-  pageDotActive: {
-    backgroundColor: '#eef878',
-    borderColor: '#eef878',
-  },
-  // Bottom Navigation
-  tabBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 75,
-    backgroundColor: "#1A1C20",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  centerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1FE74",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  plus: { 
-    fontSize: 22, 
-    color: "#000", 
-    marginTop: -1 
-  },
-
     borderColor: 'white',
   },
   cardHeader: { flexDirection: "row", justifyContent: "space-between" },
@@ -1171,5 +744,4 @@ const styles = StyleSheet.create({
   sideMenu: { position: 'absolute', top: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 + 40 : 80, right: 16, backgroundColor: '#32363F', borderRadius: 10, padding: 10, zIndex: 101, shadowColor: "#000", shadowOpacity: 0.5, shadowRadius: 5, elevation: 5 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   menuText: { color: '#fff', marginLeft: 10, fontSize: 16 },
- main
 });
