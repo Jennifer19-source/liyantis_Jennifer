@@ -2,6 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+ jai
+    Animated,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+
   Animated,
   Platform,
   SafeAreaView,
@@ -11,6 +22,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+ main
 } from 'react-native';
 
 // --- Constants & Theme ---
@@ -247,17 +259,58 @@ const styles = StyleSheet.create({
   },
   progressBar: { flexDirection: 'row', gap: 4 },
   progressDot: {
-    width: 20,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#333',
+    width: 27,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#D9D9D9',
   },
+ jai
+  progressActive: { backgroundColor: '#EEFB73' },
+
+  // Content Styles
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingBottom: 40, // Normal padding since button is now in scroll content
+  },
+  subHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  subTitle: {
+    color: COLORS.textWhite,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  optionalText: {
+    color: '#444',
+    fontSize: 12,
+  },
+  introContainer: {
+    marginBottom: 32,
+  },
+  introText: {
+    color: COLORS.textGrey,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  listContainer: {
+    gap: 18, // Reduced from 24px to 18px spacing between rating items
+  },
+
+  // Row Styles
+  rowContainer: {
+    marginBottom: 18, // Reduced from 24px to 18px spacing
+
   progressActive: { backgroundColor: COLORS.primary },
   scrollContent: { padding: 20 },
   subHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10,
+ main
   },
   subTitle: { color: COLORS.textWhite, fontWeight: '600' },
   optionalText: { color: '#555' },
@@ -267,7 +320,32 @@ const styles = StyleSheet.create({
   textRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+ jai
+    alignItems: 'flex-end',
+    marginBottom: 10,
+  },
+  label: {
+    color: '#F5F5F5',
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    fontWeight: '400',
+    letterSpacing: 0.5,
+  },
+  scoreValue: {
+    color: COLORS.textWhite,
+    fontSize: 30,
+    fontWeight: '300',
+    lineHeight: 34,
+  },
+
+  // Slider Styles
+  sliderContainer: {
+    height: 40,
+    justifyContent: 'center',
+    position: 'relative',
+
     marginBottom: 8,
+ main
   },
   label: { color: '#cbd5e1' },
   scoreValue: { color: COLORS.textWhite, fontSize: 28 },
@@ -305,7 +383,7 @@ const styles = StyleSheet.create({
   },
   nextButtonContainer: { marginTop: 30 },
   nextButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#EEFB73',
     height: 56,
     borderRadius: 28,
     alignItems: 'center',
